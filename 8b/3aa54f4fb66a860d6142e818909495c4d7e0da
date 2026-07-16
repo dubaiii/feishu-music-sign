@@ -1,0 +1,28 @@
+app/Info.plist
+  s_28181748295c72::t_1e9cc2042dfacf 8-9
+README.md
+  s_28181748295c72::t_b76501a18502ed 3-4,6,8-13,15,17-18,20-36,38,40,42-43,45,47-53,59,65-75
+app/release.sh
+  s_28181748295c72::t_ee8aead6fbc39b 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "8b3aa54f4fb66a860d6142e818909495c4d7e0da",
+  "prompts": {},
+  "humans": {
+    "h_81ddeab405047e": {
+      "author": "cf.fu <cf.fu@trip.com>"
+    }
+  },
+  "sessions": {
+    "s_28181748295c72": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3ba388ca-2b29-4318-8451-2a23a9bfb655",
+        "model": "glm-5.2"
+      },
+      "human_author": "cf.fu <cf.fu@trip.com>"
+    }
+  }
+}
