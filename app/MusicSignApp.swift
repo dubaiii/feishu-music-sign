@@ -103,7 +103,9 @@ final class FeishuService: ObservableObject {
     static let shared = FeishuService()
     @Published var loggedIn = false
     @Published var status = "未登录"
-    @Published var syncEnabled = false
+    @Published var syncEnabled: Bool {
+        didSet { UserDefaults.standard.set(syncEnabled, forKey: "feishu.syncEnabled") }
+    }
 
     @Published var prefix: String {
         didSet { UserDefaults.standard.set(prefix, forKey: "feishu.prefix") }
@@ -130,6 +132,15 @@ final class FeishuService: ObservableObject {
         prefix = UserDefaults.standard.string(forKey: "feishu.prefix") ?? ""
         suffix = UserDefaults.standard.string(forKey: "feishu.suffix") ?? ""
         pausedSignature = UserDefaults.standard.string(forKey: "feishu.pausedSignature") ?? ""
+        syncEnabled = UserDefaults.standard.bool(forKey: "feishu.syncEnabled")
+        // Auto-restore login state if a cookie file from a prior session is still on
+        // disk — so reopening the app keeps syncing without re-clicking "登录飞书".
+        // (The 4xx handler clears the cookie file + loggedIn on real expiry.)
+        let hasCookie = (try? Data(contentsOf: cookieFile))?.count ?? 0 > 0
+        if hasCookie {
+            loggedIn = true
+            status = "已登录飞书 ✓"
+        }
     }
 
     let syncLog = appSupportDir().appendingPathComponent("sync.log")
@@ -427,7 +438,7 @@ struct MenuBarLabel: View {
 // MARK: - Vibrancy background
 
 struct VisualEffectView: NSViewRepresentable {
-    var material: NSVisualEffectView.Material = .sidebar
+    var material: NSVisualEffectView.Material = .popover
     var blendingMode: NSVisualEffectView.BlendingMode = .behindWindow
 
     func makeNSView(context: Context) -> NSVisualEffectView {
@@ -436,12 +447,26 @@ struct VisualEffectView: NSViewRepresentable {
         v.blendingMode = blendingMode
         v.state = .active
         v.isEmphasized = false
+        v.wantsLayer = true
+        // The MenuBarExtra popover window is opaque by default; that opaque backing
+        // paints over behind-window vibrancy -> looks flat/grey instead of frosted.
+        // Make the host window transparent so the blur actually shows through.
+        DispatchQueue.main.async { Self.makeWindowTransparent(v) }
         return v
     }
 
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
         nsView.material = material
         nsView.blendingMode = blendingMode
+        DispatchQueue.main.async { Self.makeWindowTransparent(nsView) }
+    }
+
+    private static func makeWindowTransparent(_ v: NSVisualEffectView) {
+        guard let win = v.window else { return }
+        win.isOpaque = false
+        win.backgroundColor = .clear
+        win.isMovableByWindowBackground = false
+        win.hasShadow = true
     }
 }
 
