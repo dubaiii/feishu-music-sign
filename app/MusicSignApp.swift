@@ -327,6 +327,29 @@ final class FeishuService: ObservableObject {
         throttledUpdate(sig, force: true)
     }
 
+    /// Debounced sync triggered when a text field loses focus (user finished editing).
+    /// Waits `editDebounce` so that moving between fields / rapid blurs don't spam the
+    /// API; then pushes the current signature immediately (force, bypassing the 10s
+    /// track-sync throttle — this is an explicit user action).
+    private var editWork: DispatchWorkItem?
+    private let editDebounce: TimeInterval = 0.6
+    func scheduleEditSync() {
+        guard syncEnabled, loggedIn else { return }
+        editWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            let np = NowPlayingService.shared
+            let sig = (np.track.playing && !np.signatureText.isEmpty)
+                ? self.composeSignature(np.signatureText)
+                : self.pausedSignature.trimmingCharacters(in: .whitespaces)
+            guard !sig.isEmpty else { return }
+            self.lastSynced = sig
+            self.throttledUpdate(sig, force: true)
+        }
+        editWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + editDebounce, execute: work)
+    }
+
     // MARK: Throttle — at most one Feishu API call per `minInterval` (10s).
     // Coalesces bursts (rapid skip/pause/resume) into the latest signature.
     private let minInterval: TimeInterval = 10
@@ -540,6 +563,8 @@ struct VisualEffectView: NSViewRepresentable {
 struct ContentView: View {
     @ObservedObject private var np = NowPlayingService.shared
     @ObservedObject private var feishu = FeishuService.shared
+    private enum Field { case prefix, suffix, paused }
+    @FocusState private var focused: Field?
 
     var body: some View {
         ZStack {
@@ -554,9 +579,6 @@ struct ContentView: View {
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
-                if !np.track.source.isEmpty {
-                    Text("来源: \(np.track.source)").font(.caption2).foregroundStyle(.tertiary)
-                }
                 Divider()
                 HStack {
                     Image(systemName: feishu.loggedIn ? "checkmark.circle.fill" : "person.crop.circle.badge.exclamationmark")
@@ -568,19 +590,22 @@ struct ContentView: View {
                     .disabled(!feishu.loggedIn)
                 HStack {
                     Text("前缀").font(.caption).foregroundStyle(.secondary)
-                    TextField("如 🎧", text: $feishu.prefix).textFieldStyle(.roundedBorder)
+                    TextField("如 🎵", text: $feishu.prefix)
+                        .textFieldStyle(.roundedBorder)
+                        .focused($focused, equals: .prefix)
                 }
                 HStack {
                     Text("后缀").font(.caption).foregroundStyle(.secondary)
-                    TextField("如 (now)", text: $feishu.suffix).textFieldStyle(.roundedBorder)
+                    TextField("如 (now)", text: $feishu.suffix)
+                        .textFieldStyle(.roundedBorder)
+                        .focused($focused, equals: .suffix)
                 }
                 HStack {
                     Text("暂停").font(.caption).foregroundStyle(.secondary)
                     TextField("暂停时的签名", text: $feishu.pausedSignature)
                         .textFieldStyle(.roundedBorder)
+                        .focused($focused, equals: .paused)
                 }
-                Button("立即同步(测试)") { feishu.forceSync() }
-                    .disabled(!feishu.loggedIn)
                 if feishu.syncEnabled {
                     Text("预览: \(feishu.previewSignature(playing: np.track.playing, trackText: np.signatureText))")
                         .font(.caption).foregroundStyle(.secondary).lineLimit(2)
@@ -590,6 +615,15 @@ struct ContentView: View {
             }
             .padding(14)
             .frame(width: 300)
+            // Tap on empty area (behind the fields) blurs the active field, which
+            // (via onChange below) triggers a debounced sync. TextField taps still
+            // focus normally — they're in front of this background.
+            .background(Color.clear.contentShape(Rectangle()).onTapGesture { focused = nil })
+            .onChange(of: focused) { _, newFocus in
+                // Losing focus entirely (clicked outside) → debounce-sync after the
+                // user stops editing, so typing doesn't spam the Feishu API.
+                if newFocus == nil { feishu.scheduleEditSync() }
+            }
         }
     }
 }
