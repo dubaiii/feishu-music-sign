@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import WebKit
+import ServiceManagement
 import Foundation
 
 // MARK: - Models
@@ -157,6 +158,24 @@ final class FeishuService: ObservableObject {
                 self?.loggedIn = ok
                 self?.status = ok ? "已登录飞书 ✓" : "未登录"
             }
+        }
+    }
+
+    /// Request launch-at-login authorization (non-blocking). The system presents its
+    /// own prompt; declining doesn't prevent manual use of the app.
+    func requestLaunchAtLogin() {
+        guard SMAppService.mainApp.status != .enabled else { return }
+        do {
+            try SMAppService.mainApp.register()
+        } catch {
+            status = "开机自启申请失败: \(error.localizedDescription)"
+            return
+        }
+        if SMAppService.mainApp.status == .requiresApproval {
+            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension")!)
+            status = "已申请开机自启,需在系统设置→登录项确认"
+        } else if SMAppService.mainApp.status == .enabled {
+            status = "已开启开机自启 ✓"
         }
     }
 
@@ -403,6 +422,15 @@ final class FeishuLoginWindow: NSWindow, WKNavigationDelegate, NSWindowDelegate 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ n: Notification) {
         NowPlayingService.shared.start()
+        // Once per install: request launch-at-login (non-blocking — declining doesn't
+        // prevent manual use). The system shows its own authorization prompt.
+        let ud = UserDefaults.standard
+        if !ud.bool(forKey: "launchPrompted") {
+            ud.set(true, forKey: "launchPrompted")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                FeishuService.shared.requestLaunchAtLogin()
+            }
+        }
     }
 }
 
@@ -480,7 +508,11 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            VisualEffectView().ignoresSafeArea()
+            if #available(macOS 26.0, *) {
+                Color.clear
+            } else {
+                VisualEffectView().ignoresSafeArea()
+            }
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Image(systemName: np.track.playing ? "pause.fill" : "play.fill").font(.title3)

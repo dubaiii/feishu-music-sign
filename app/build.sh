@@ -7,7 +7,7 @@ APP="$ROOT/build/MusicSign.app"
 rm -rf "$ROOT/build"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
-swiftc -parse-as-library \
+swiftc -parse-as-library -target arm64-apple-macos14.0 \
   -framework SwiftUI -framework AppKit -framework WebKit -framework ApplicationServices \
   MusicSignApp.swift -o "$APP/Contents/MacOS/MusicSign"
 
