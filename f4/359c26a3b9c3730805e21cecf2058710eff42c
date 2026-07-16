@@ -1,0 +1,22 @@
+app/MusicSignApp.swift
+  s_28181748295c72::t_6aa65c09737d8f 235-243
+  s_28181748295c72::t_0f02cfabd3c55c 295-296,304
+  s_28181748295c72::t_ad6f351e3ac5ae 622-623
+  s_28181748295c72::t_93ccbdc78e214f 259-260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "f4359c26a3b9c3730805e21cecf2058710eff42c",
+  "prompts": {},
+  "sessions": {
+    "s_28181748295c72": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3ba388ca-2b29-4318-8451-2a23a9bfb655",
+        "model": "glm-5.2"
+      },
+      "human_author": "cf.fu <cf.fu@trip.com>"
+    }
+  }
+}
