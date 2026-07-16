@@ -1,7 +1,6 @@
 import SwiftUI
 import AppKit
 import WebKit
-import ApplicationServices
 import Foundation
 
 // MARK: - Models
@@ -95,122 +94,6 @@ final class NowPlayingService: ObservableObject {
         let artist = (obj["artist"] as? String) ?? ""
         let playing = (obj["playing"] as? Bool) ?? false
         return Track(title: title, artist: artist, playing: playing, source: "MediaRemote")
-    }
-
-    private func appleScriptNowPlaying() -> Track? {
-        let src = """
-        tell application "System Events" to set procs to name of processes
-        if "Spotify" is in procs then
-          try
-            tell application "Spotify"
-              set t to name of current track
-              set ar to artist of current track
-              set pst to player state
-              return t & tab & ar & tab & (pst as string) & tab & "Spotify"
-            end tell
-          end try
-        end if
-        if "Music" is in procs then
-          try
-            tell application "Music"
-              set t to name of current track
-              set ar to artist of current track
-              set pst to player state
-              return t & tab & ar & tab & (pst as string) & tab & "Apple Music"
-            end tell
-          end try
-        end if
-        return ""
-        """
-        var err: NSDictionary?
-        guard let script = NSAppleScript(source: src) else { return nil }
-        let res = script.executeAndReturnError(&err)
-        if err != nil { return nil }
-        let raw = res.stringValue ?? ""
-        guard !raw.isEmpty else { return nil }
-        let parts = raw.components(separatedBy: "\t")
-        guard parts.count >= 3 else { return nil }
-        let title = parts[0], artist = parts[1], state = parts[2]
-        let source = parts.count > 3 ? parts[3] : "AppleScript"
-        return Track(title: title, artist: artist, playing: state == "playing", source: source)
-    }
-
-    // MARK: Accessibility fallback (QQ音乐/网易云/酷狗 etc. — no AppleScript dict)
-    private var axPrompted = false
-    private var axDebuggedOK = false
-    private let axDebugLog = appSupportDir().appendingPathComponent("ax_debug.log")
-    private let axApps = ["汽水音乐", "QQ音乐", "网易云音乐", "酷狗音乐",
-                          "QQMusic", "NeteaseMusic", "NeteaseMusicForMac", "kugou", "KuGou", "xiami"]
-
-    /// Dump what the AX layer sees for each known music app, so we can see where the
-    /// song lives (window title? a child element?) and tune parsing. Writes ax_debug.log.
-    private func axDebugDump() {
-        if !axPrompted {
-            axPrompted = true
-            _ = AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
-        }
-        guard !axDebuggedOK else { return }
-        var lines: [String] = []
-        for name in axApps {
-            guard let app = NSWorkspace.shared.runningApplications.first(where: {
-                ($0.localizedName == name) || (($0.bundleIdentifier ?? "").lowercased().contains(name.lowercased()))
-            }) else { continue }
-            let ax = AXUIElementCreateApplication(app.processIdentifier)
-            var winsVal: CFTypeRef?
-            AXUIElementCopyAttributeValue(ax, kAXWindowsAttribute as CFString, &winsVal)
-            let wins = (winsVal as? [AXUIElement]) ?? []
-            for (i, w) in wins.prefix(3).enumerated() {
-                var t: CFTypeRef?
-                AXUIElementCopyAttributeValue(w, kAXTitleAttribute as CFString, &t)
-                let title = (t as? String) ?? "(no title)"
-                lines.append("\(name) win[\(i)] title=\"\(title)\"")
-                var kids: CFTypeRef?
-                AXUIElementCopyAttributeValue(w, kAXChildrenAttribute as CFString, &kids)
-                for c in (kids as? [AXUIElement]) ?? [] {
-                    var ct: CFTypeRef?; var cr: CFTypeRef?
-                    AXUIElementCopyAttributeValue(c, kAXTitleAttribute as CFString, &ct)
-                    AXUIElementCopyAttributeValue(c, kAXRoleAttribute as CFString, &cr)
-                    let s = (ct as? String) ?? ""
-                    if !s.isEmpty { lines.append("   child role=\(cr as? String ?? "?") title=\"\(s)\"") }
-                }
-            }
-        }
-        if !lines.isEmpty { axDebuggedOK = true }
-        try? lines.joined(separator: "\n").data(using: .utf8)?.write(to: axDebugLog)
-    }
-
-    private func axNowPlaying() -> Track? {
-        if !axPrompted {
-            axPrompted = true
-            _ = AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
-        }
-        for name in axApps {
-            guard let title = axWindowTitle(name), !title.isEmpty else { continue }
-            var s = title
-            for a in axApps {
-                s = s.replacingOccurrences(of: " - \(a)", with: "")
-                     .replacingOccurrences(of: "(\(a))", with: "")
-            }
-            let parts = s.components(separatedBy: " - ")
-            if parts.count >= 2 {
-                return Track(title: parts[0], artist: parts[1], playing: true, source: name)
-            }
-            if !s.isEmpty { return Track(title: s, artist: "", playing: true, source: name) }
-        }
-        return nil
-    }
-
-    private func axWindowTitle(_ appName: String) -> String? {
-        guard let app = NSWorkspace.shared.runningApplications.first(where: {
-            ($0.localizedName == appName) || (($0.bundleIdentifier ?? "").contains(appName))
-        }) else { return nil }
-        let ax = AXUIElementCreateApplication(app.processIdentifier)
-        var windowsVal: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(ax, kAXWindowsAttribute as CFString, &windowsVal) == .success,
-              let wins = windowsVal as? [AXUIElement], let w = wins.first else { return nil }
-        var title: CFTypeRef?
-        AXUIElementCopyAttributeValue(w, kAXTitleAttribute as CFString, &title)
-        return title as? String
     }
 }
 
@@ -608,17 +491,6 @@ struct ContentView: View {
                 }
                 Divider()
                 Button("退出") { NSApplication.shared.terminate(nil) }
-                HStack {
-                    Spacer()
-                    HStack(spacing: 4) {
-                        Text("项目地址:").font(.caption2).foregroundStyle(.tertiary)
-                        Link("github.com",
-                             destination: URL(string: "https://github.com/dubaiii/feishu-music-sign")!)
-                            .font(.caption2)
-                            .underline()
-                    }
-                    Spacer()
-                }
             }
             .padding(14)
             .frame(width: 300)

@@ -6,7 +6,7 @@ set -e
 cd "$(dirname "$0")"
 ROOT="$(cd .. && pwd)"
 BIN="$ROOT/bin"
-VERSION="0.0.1"
+VERSION="0.0.2"
 APP="$ROOT/build/MusicSign.app"
 ZIP="$ROOT/build/MusicSign-${VERSION}.zip"
 
