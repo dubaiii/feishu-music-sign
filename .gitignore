@@ -12,3 +12,7 @@ build/
 
 # backups
 *.bak
+
+# large icon source assets (generated icns is committed in app/)
+飞书passport_users_details API.png
+app/AppIcon-1024.png

@@ -6,7 +6,7 @@ set -e
 cd "$(dirname "$0")"
 ROOT="$(cd .. && pwd)"
 BIN="$ROOT/bin"
-VERSION="0.0.2"
+VERSION="0.0.3"
 APP="$ROOT/build/MusicSign.app"
 ZIP="$ROOT/build/MusicSign-${VERSION}.zip"
 
@@ -32,6 +32,7 @@ lipo -create "$APP/Contents/MacOS/MusicSign-arm64" "$APP/Contents/MacOS/MusicSig
 rm "$APP/Contents/MacOS/MusicSign-arm64" "$APP/Contents/MacOS/MusicSign-x86_64"
 
 cp Info.plist "$APP/Contents/Info.plist"
+cp AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp "$BIN/loader.pl" "$APP/Contents/Resources/loader.pl"
 
 # 3) ad-hoc sign the bundle (stable signature for TCC)

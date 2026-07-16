@@ -12,6 +12,7 @@ swiftc -parse-as-library \
   MusicSignApp.swift -o "$APP/Contents/MacOS/MusicSign"
 
 cp Info.plist "$APP/Contents/Info.plist"
+cp AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp "$ROOT/bin/libmr_adapter.dylib" "$APP/Contents/Resources/libmr_adapter.dylib"
 cp "$ROOT/bin/loader.pl" "$APP/Contents/Resources/loader.pl"
 
