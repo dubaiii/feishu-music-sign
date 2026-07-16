@@ -36,8 +36,10 @@ final class NowPlayingService: ObservableObject {
     func start() {
         guard timer == nil else { return }
         poll()
-        let t = Timer(timeInterval: 3.0, repeats: true) { _ in self.poll() }
-        t.tolerance = 0.5
+        // 10s cadence: keeps now-playing detection responsive without hammering
+        // the Feishu API on rapid track/pause toggles (changes are dedup'd upstream).
+        let t = Timer(timeInterval: 10.0, repeats: true) { _ in self.poll() }
+        t.tolerance = 1.0
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
@@ -66,7 +68,9 @@ final class NowPlayingService: ObservableObject {
         DispatchQueue.main.async {
             let changed = self.track != v
             self.track = v
-            if changed { FeishuService.shared.syncIfNeeded(self.signatureText) }
+            if changed {
+                FeishuService.shared.syncFromState(playing: v.playing, trackText: self.signatureText)
+            }
         }
     }
 
@@ -224,6 +228,10 @@ final class FeishuService: ObservableObject {
     @Published var suffix: String {
         didSet { UserDefaults.standard.set(suffix, forKey: "feishu.suffix") }
     }
+    /// Signature pushed when playback is paused or no track. Empty = clear the signature.
+    @Published var pausedSignature: String {
+        didSet { UserDefaults.standard.set(pausedSignature, forKey: "feishu.pausedSignature") }
+    }
 
     let cookieFile = appSupportDir().appendingPathComponent("feishu_cookies.json")
     let loginURL = URL(string: "https://feishu.cn/next/messenger")!
@@ -238,6 +246,7 @@ final class FeishuService: ObservableObject {
     private init() {
         prefix = UserDefaults.standard.string(forKey: "feishu.prefix") ?? ""
         suffix = UserDefaults.standard.string(forKey: "feishu.suffix") ?? ""
+        pausedSignature = UserDefaults.standard.string(forKey: "feishu.pausedSignature") ?? ""
     }
 
     let syncLog = appSupportDir().appendingPathComponent("sync.log")
@@ -283,21 +292,65 @@ final class FeishuService: ObservableObject {
         return sig.trimmingCharacters(in: .whitespaces)
     }
 
-    /// Called by NowPlayingService when the track changes.
-    func syncIfNeeded(_ text: String) {
-        guard syncEnabled, loggedIn else { return }
-        let sig = composeSignature(text)
-        guard !sig.isEmpty, sig != lastSynced else { return }
-        lastSynced = sig
-        updateSignature(sig)
+    /// What the popover preview shows — same logic as syncFromState.
+    func previewSignature(playing: Bool, trackText: String) -> String {
+        if playing && !trackText.isEmpty {
+            return composeSignature(trackText)
+        }
+        let p = pausedSignature.trimmingCharacters(in: .whitespaces)
+        return p.isEmpty ? "(清空签名)" : p
     }
 
-    /// Manual trigger for debugging — forces one sync + logs the full response.
+    /// Called by NowPlayingService when the track or playing-state changes.
+    /// Playing (with a track) → song signature (prefix/track/suffix).
+    /// Paused or no track → the user's `pausedSignature` (restore default).
+    func syncFromState(playing: Bool, trackText: String) {
+        guard syncEnabled, loggedIn else { return }
+        let sig: String
+        if playing && !trackText.isEmpty {
+            sig = composeSignature(trackText)
+        } else {
+            sig = pausedSignature.trimmingCharacters(in: .whitespaces)
+        }
+        guard sig != lastSynced else { return }
+        lastSynced = sig
+        throttledUpdate(sig)
+    }
+
+    /// Manual trigger for debugging — forces one sync now, bypassing the throttle.
     func forceSync() {
-        let sig = composeSignature(NowPlayingService.shared.signatureText)
-        guard !sig.isEmpty else { status = "当前无歌曲"; return }
-        lastSynced = ""
-        updateSignature(sig)
+        let np = NowPlayingService.shared
+        let sig = (np.track.playing && !np.signatureText.isEmpty)
+            ? composeSignature(np.signatureText)
+            : pausedSignature.trimmingCharacters(in: .whitespaces)
+        lastSynced = sig
+        throttledUpdate(sig, force: true)
+    }
+
+    // MARK: Throttle — at most one Feishu API call per `minInterval` (10s).
+    // Coalesces bursts (rapid skip/pause/resume) into the latest signature.
+    private let minInterval: TimeInterval = 10
+    private var lastSyncAt: Date = .distantPast
+    private var pending: DispatchWorkItem?
+
+    private func throttledUpdate(_ sig: String, force: Bool = false) {
+        let elapsed = Date().timeIntervalSince(lastSyncAt)
+        if force || elapsed >= minInterval {
+            pending?.cancel()
+            pending = nil
+            lastSyncAt = Date()
+            updateSignature(sig)
+            return
+        }
+        // Defer the latest sig until the cooldown elapses; a newer call replaces it.
+        pending?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.lastSyncAt = Date()
+            self.updateSignature(sig)
+        }
+        pending = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + (minInterval - elapsed), execute: work)
     }
 
     private func updateSignature(_ signature: String) {
@@ -521,10 +574,15 @@ struct ContentView: View {
                     Text("后缀").font(.caption).foregroundStyle(.secondary)
                     TextField("如 (now)", text: $feishu.suffix).textFieldStyle(.roundedBorder)
                 }
+                HStack {
+                    Text("暂停").font(.caption).foregroundStyle(.secondary)
+                    TextField("暂停时的签名", text: $feishu.pausedSignature)
+                        .textFieldStyle(.roundedBorder)
+                }
                 Button("立即同步(测试)") { feishu.forceSync() }
                     .disabled(!feishu.loggedIn)
-                if feishu.syncEnabled, !np.signatureText.isEmpty {
-                    Text("预览: \(feishu.composeSignature(np.signatureText))")
+                if feishu.syncEnabled {
+                    Text("预览: \(feishu.previewSignature(playing: np.track.playing, trackText: np.signatureText))")
                         .font(.caption).foregroundStyle(.secondary).lineLimit(2)
                 }
                 Divider()
