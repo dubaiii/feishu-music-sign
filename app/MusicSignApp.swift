@@ -411,8 +411,16 @@ struct MusicSignApp: App {
 struct MenuBarLabel: View {
     @ObservedObject var np = NowPlayingService.shared
     var body: some View {
-        Text(np.track.playing ? "🎵 \(np.track.title.prefix(20))" : "♪")
-            .lineLimit(1)
+        if np.track.playing && !np.track.title.isEmpty {
+            HStack(spacing: 5) {
+                Image(systemName: "music.note").imageScale(.large)
+                    .scaleEffect(x: 1.4, y: 1.0, anchor: .center)
+                Text(np.track.title.prefix(20)).lineLimit(1)
+            }
+        } else {
+            Image(systemName: "music.note").imageScale(.large)
+                .scaleEffect(x: 1.4, y: 1.0, anchor: .center)
+        }
     }
 }
 
