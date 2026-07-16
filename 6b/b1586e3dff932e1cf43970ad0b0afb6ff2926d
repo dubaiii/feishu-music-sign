@@ -1,0 +1,26 @@
+app/release.sh
+  s_28181748295c72::t_30159d5379ac7f 9
+app/Info.plist
+  s_28181748295c72::t_99b727e4e16749 8-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "6bb1586e3dff932e1cf43970ad0b0afb6ff2926d",
+  "prompts": {},
+  "humans": {
+    "h_81ddeab405047e": {
+      "author": "cf.fu <cf.fu@trip.com>"
+    }
+  },
+  "sessions": {
+    "s_28181748295c72": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3ba388ca-2b29-4318-8451-2a23a9bfb655",
+        "model": "glm-5.2"
+      },
+      "human_author": "cf.fu <cf.fu@trip.com>"
+    }
+  }
+}
