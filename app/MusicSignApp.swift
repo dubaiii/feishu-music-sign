@@ -232,15 +232,6 @@ final class FeishuService: ObservableObject {
     @Published var pausedSignature: String {
         didSet { UserDefaults.standard.set(pausedSignature, forKey: "feishu.pausedSignature") }
     }
-    /// Append the project repo link to the (playing) signature so Feishu renders it
-    /// as a clickable hyperlink. Feishu auto-linkifies URLs/domains in the signature.
-    @Published var linkEnabled: Bool {
-        didSet {
-            UserDefaults.standard.set(linkEnabled, forKey: "feishu.linkEnabled")
-            scheduleEditSync()
-        }
-    }
-    let projectLink = "github.com/dubaiii/feishu-music-sign"
 
     let cookieFile = appSupportDir().appendingPathComponent("feishu_cookies.json")
     let loginURL = URL(string: "https://feishu.cn/next/messenger")!
@@ -256,8 +247,6 @@ final class FeishuService: ObservableObject {
         prefix = UserDefaults.standard.string(forKey: "feishu.prefix") ?? ""
         suffix = UserDefaults.standard.string(forKey: "feishu.suffix") ?? ""
         pausedSignature = UserDefaults.standard.string(forKey: "feishu.pausedSignature") ?? ""
-        // Defaults to true so the project link shows up out of the box.
-        linkEnabled = (UserDefaults.standard.object(forKey: "feishu.linkEnabled") as? Bool) ?? true
     }
 
     let syncLog = appSupportDir().appendingPathComponent("sync.log")
@@ -292,8 +281,7 @@ final class FeishuService: ObservableObject {
         return pairs.joined(separator: "; ")
     }
 
-    /// Compose the final signature: `${prefix} ${track}${suffix ? ' '+suffix : ''}${link}`.trim()
-    /// The project link is appended so Feishu auto-linkifies it into a clickable URL.
+    /// Song signature: `${prefix} ${track}${suffix ? ' '+suffix : ''}`.trim()
     func composeSignature(_ track: String) -> String {
         guard !track.isEmpty else { return "" }
         let p = prefix.trimmingCharacters(in: .whitespaces)
@@ -301,30 +289,29 @@ final class FeishuService: ObservableObject {
         var sig = track
         if !p.isEmpty { sig = p + " " + sig }
         if !s.isEmpty { sig = sig + " " + s }
-        if linkEnabled { sig = sig + " · " + projectLink }
         return sig.trimmingCharacters(in: .whitespaces)
     }
 
-    /// What the popover preview shows — same logic as syncFromState.
-    func previewSignature(playing: Bool, trackText: String) -> String {
+    /// The signature that should be pushed right now.
+    /// Playing (with a track) → song signature (prefix/track/suffix).
+    /// Paused or no track → pausedSignature (restore default).
+    func currentSignature(playing: Bool, trackText: String) -> String {
         if playing && !trackText.isEmpty {
             return composeSignature(trackText)
         }
-        let p = pausedSignature.trimmingCharacters(in: .whitespaces)
-        return p.isEmpty ? "(清空签名)" : p
+        return pausedSignature.trimmingCharacters(in: .whitespaces)
+    }
+
+    /// What the popover preview shows — same logic as currentSignature.
+    func previewSignature(playing: Bool, trackText: String) -> String {
+        let s = currentSignature(playing: playing, trackText: trackText)
+        return s.isEmpty ? "(清空签名)" : s
     }
 
     /// Called by NowPlayingService when the track or playing-state changes.
-    /// Playing (with a track) → song signature (prefix/track/suffix).
-    /// Paused or no track → the user's `pausedSignature` (restore default).
     func syncFromState(playing: Bool, trackText: String) {
         guard syncEnabled, loggedIn else { return }
-        let sig: String
-        if playing && !trackText.isEmpty {
-            sig = composeSignature(trackText)
-        } else {
-            sig = pausedSignature.trimmingCharacters(in: .whitespaces)
-        }
+        let sig = currentSignature(playing: playing, trackText: trackText)
         guard sig != lastSynced else { return }
         lastSynced = sig
         throttledUpdate(sig)
@@ -333,9 +320,7 @@ final class FeishuService: ObservableObject {
     /// Manual trigger for debugging — forces one sync now, bypassing the throttle.
     func forceSync() {
         let np = NowPlayingService.shared
-        let sig = (np.track.playing && !np.signatureText.isEmpty)
-            ? composeSignature(np.signatureText)
-            : pausedSignature.trimmingCharacters(in: .whitespaces)
+        let sig = currentSignature(playing: np.track.playing, trackText: np.signatureText)
         lastSynced = sig
         throttledUpdate(sig, force: true)
     }
@@ -352,9 +337,7 @@ final class FeishuService: ObservableObject {
         let work = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             let np = NowPlayingService.shared
-            let sig = (np.track.playing && !np.signatureText.isEmpty)
-                ? self.composeSignature(np.signatureText)
-                : self.pausedSignature.trimmingCharacters(in: .whitespaces)
+            let sig = self.currentSignature(playing: np.track.playing, trackText: np.signatureText)
             guard !sig.isEmpty else { return }
             self.lastSynced = sig
             self.throttledUpdate(sig, force: true)
@@ -619,14 +602,17 @@ struct ContentView: View {
                         .textFieldStyle(.roundedBorder)
                         .focused($focused, equals: .paused)
                 }
-                Toggle("签名带项目链接", isOn: $feishu.linkEnabled)
-                    .font(.caption)
                 if feishu.syncEnabled {
                     Text("预览: \(feishu.previewSignature(playing: np.track.playing, trackText: np.signatureText))")
                         .font(.caption).foregroundStyle(.secondary).lineLimit(2)
                 }
                 Divider()
                 Button("退出") { NSApplication.shared.terminate(nil) }
+                HStack {
+                    Spacer()
+                    Link("项目来源", destination: URL(string: "https://github.com/dubaiii/feishu-music-sign")!)
+                        .font(.caption2).foregroundStyle(.tertiary)
+                }
             }
             .padding(14)
             .frame(width: 300)
