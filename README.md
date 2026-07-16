@@ -4,7 +4,7 @@ macOS 菜单栏小软件:读取系统正在播放的歌,自动投射到飞书"�
 
 ## 功能
 
-- **取歌**:系统级 Now Playing(MediaRemote 私框架,经 Apple 签名的 `/usr/bin/perl` 加载 dylib 调用),覆盖**所有**播放器(Spotify / Apple Music / QQ音乐 / 网易云 / 酷狗 / 汽水音乐 / Chrome …),无需对每个 app 单独适配。
+- **取歌**:系统级 Now Playing(MediaRemote 经 Apple 签名的 `/usr/bin/perl` 加载 dylib 调用),覆盖**所有**播放器(Spotify / Apple Music / QQ音乐 / 网易云 / 酷狗 / 汽水音乐 / Chrome …),无需对每个 app 单独适配。
 - **飞书签名**:登录网页版飞书抓 cookie,直接调飞书接口改签名。
 - **前后缀**:可自定义签名首尾(如前缀 `🎧`、后缀 `(now)`)。
 - **暂停恢复**:暂停时自动切到"暂停签名"(可留空=清空),播放时切回歌名。
@@ -32,7 +32,7 @@ macOS 菜单栏小软件:读取系统正在播放的歌,自动投射到飞书"�
 
 ## 文件
 
-- `app/MusicSignApp.swift` — App 主体(NowPlaying / Feishu 登录+cookie 直调 / 菜单栏 UI / 毛玻璃背景)。
+- `app/MusicSignApp.swift` — App 主体(NowPlaying / Feishu 登录+cookie 直调 / 菜单栏 UI)。
 - `app/build.sh`、`app/release.sh` — 本机构建 / universal 打包。
 - `bin/mr_adapter.m` → `libmr_adapter.dylib` — MediaRemote 适配器(经 perl 加载)。
 - `bin/loader.pl` — DynaLoader 加载 dylib 的胶水。

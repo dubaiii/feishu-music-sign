@@ -450,7 +450,7 @@ struct ContentView: View {
             VisualEffectView().ignoresSafeArea()
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(np.track.playing ? "▶" : "⏸").font(.title3)
+                    Image(systemName: np.track.playing ? "pause.fill" : "play.fill").font(.title3)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(np.track.title.isEmpty ? "未在播放" : np.track.title)
                             .font(.headline)
