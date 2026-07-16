@@ -1,0 +1,34 @@
+app/MusicSignApp.swift
+  s_28181748295c72::t_1ac5564b069022 453
+README.md
+  h_81ddeab405047e 7
+app/Info.plist
+  s_28181748295c72::t_bb6c3a453c1a24 8-9
+app/release.sh
+  s_28181748295c72::t_2b46b9a1fa0d0a 9
+scripts/make_icon_from.py
+  s_28181748295c72::t_a6a2d90fe37bbc 2-5,10-13,17-50,65,70-71,74
+  s_28181748295c72::t_a95079ab880746 52-53,55-56,58-63
+  s_28181748295c72::t_254a357d5c7d2f 54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "b31560d60dbd03cb937801f2f489f418720c9cfd",
+  "prompts": {},
+  "humans": {
+    "h_81ddeab405047e": {
+      "author": "cf.fu <cf.fu@trip.com>"
+    }
+  },
+  "sessions": {
+    "s_28181748295c72": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3ba388ca-2b29-4318-8451-2a23a9bfb655",
+        "model": "glm-5.2"
+      },
+      "human_author": "cf.fu <cf.fu@trip.com>"
+    }
+  }
+}
