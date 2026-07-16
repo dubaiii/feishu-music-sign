@@ -232,6 +232,15 @@ final class FeishuService: ObservableObject {
     @Published var pausedSignature: String {
         didSet { UserDefaults.standard.set(pausedSignature, forKey: "feishu.pausedSignature") }
     }
+    /// Append the project repo link to the (playing) signature so Feishu renders it
+    /// as a clickable hyperlink. Feishu auto-linkifies URLs/domains in the signature.
+    @Published var linkEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(linkEnabled, forKey: "feishu.linkEnabled")
+            scheduleEditSync()
+        }
+    }
+    let projectLink = "github.com/dubaiii/feishu-music-sign"
 
     let cookieFile = appSupportDir().appendingPathComponent("feishu_cookies.json")
     let loginURL = URL(string: "https://feishu.cn/next/messenger")!
@@ -247,6 +256,8 @@ final class FeishuService: ObservableObject {
         prefix = UserDefaults.standard.string(forKey: "feishu.prefix") ?? ""
         suffix = UserDefaults.standard.string(forKey: "feishu.suffix") ?? ""
         pausedSignature = UserDefaults.standard.string(forKey: "feishu.pausedSignature") ?? ""
+        // Defaults to true so the project link shows up out of the box.
+        linkEnabled = (UserDefaults.standard.object(forKey: "feishu.linkEnabled") as? Bool) ?? true
     }
 
     let syncLog = appSupportDir().appendingPathComponent("sync.log")
@@ -281,7 +292,8 @@ final class FeishuService: ObservableObject {
         return pairs.joined(separator: "; ")
     }
 
-    /// Compose the final signature: `${prefix} ${track}${suffix ? ' '+suffix : ''}`.trim()
+    /// Compose the final signature: `${prefix} ${track}${suffix ? ' '+suffix : ''}${link}`.trim()
+    /// The project link is appended so Feishu auto-linkifies it into a clickable URL.
     func composeSignature(_ track: String) -> String {
         guard !track.isEmpty else { return "" }
         let p = prefix.trimmingCharacters(in: .whitespaces)
@@ -289,6 +301,7 @@ final class FeishuService: ObservableObject {
         var sig = track
         if !p.isEmpty { sig = p + " " + sig }
         if !s.isEmpty { sig = sig + " " + s }
+        if linkEnabled { sig = sig + " · " + projectLink }
         return sig.trimmingCharacters(in: .whitespaces)
     }
 
@@ -606,6 +619,8 @@ struct ContentView: View {
                         .textFieldStyle(.roundedBorder)
                         .focused($focused, equals: .paused)
                 }
+                Toggle("签名带项目链接", isOn: $feishu.linkEnabled)
+                    .font(.caption)
                 if feishu.syncEnabled {
                     Text("预览: \(feishu.previewSignature(playing: np.track.playing, trackText: np.signatureText))")
                         .font(.caption).foregroundStyle(.secondary).lineLimit(2)
