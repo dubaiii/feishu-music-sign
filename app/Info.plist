@@ -5,8 +5,8 @@
   <key>CFBundleName</key><string>MusicSign</string>
   <key>CFBundleDisplayName</key><string>MusicSign</string>
   <key>CFBundleIdentifier</key><string>com.fufu.musicsign</string>
-  <key>CFBundleVersion</key><string>5</string>
-  <key>CFBundleShortVersionString</key><string>0.0.5</string>
+  <key>CFBundleVersion</key><string>6</string>
+  <key>CFBundleShortVersionString</key><string>0.0.6</string>
   <key>CFBundleExecutable</key><string>MusicSign</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
