@@ -610,8 +610,14 @@ struct ContentView: View {
                 Button("退出") { NSApplication.shared.terminate(nil) }
                 HStack {
                     Spacer()
-                    Link("项目来源", destination: URL(string: "https://github.com/dubaiii/feishu-music-sign")!)
-                        .font(.caption2).foregroundStyle(.tertiary)
+                    HStack(spacing: 4) {
+                        Text("项目地址:").font(.caption2).foregroundStyle(.tertiary)
+                        Link("github.com",
+                             destination: URL(string: "https://github.com/dubaiii/feishu-music-sign")!)
+                            .font(.caption2)
+                            .underline()
+                    }
+                    Spacer()
                 }
             }
             .padding(14)
