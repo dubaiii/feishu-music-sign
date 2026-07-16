@@ -1,0 +1,39 @@
+#!/bin/sh
+# nowplaying — print JSON of currently playing track.
+# Source priority: Spotify, Apple Music (AppleScript; needs one-time Automation perm).
+# QQ音乐/网易云/酷狗等不暴露脚本字典,交给 App 内的 MediaRemote/Accessibility 兜底。
+set -u
+RAW=$(/usr/bin/osascript -l AppleScript 2>/dev/null <<'AS'
+tell application "System Events" to set procs to name of processes
+if "Spotify" is in procs then
+  try
+    tell application "Spotify"
+      set t to name of current track
+      set ar to artist of current track
+      set pst to player state
+      return t & tab & ar & tab & (pst as string)
+    end tell
+  end try
+end if
+if "Music" is in procs then
+  try
+    tell application "Music"
+      set t to name of current track
+      set ar to artist of current track
+      set pst to player state
+      return t & tab & ar & tab & (pst as string)
+    end tell
+  end try
+end if
+return ""
+AS
+)
+if [ -z "$RAW" ]; then
+  printf '{"playing":false}\n'
+  exit 0
+fi
+title=$(printf '%s' "$RAW" | cut -f1)
+artist=$(printf '%s' "$RAW" | cut -f2)
+state=$(printf '%s' "$RAW" | cut -f3)
+/usr/bin/jq -nc --arg t "$title" --arg a "$artist" --arg s "$state" \
+  '{title:$t, artist:$a, state:$s, playing:($s=="playing")}'

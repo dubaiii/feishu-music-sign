@@ -1,0 +1,14 @@
+# build output
+build/
+*.app
+
+# macOS
+.DS_Store
+
+# dev tooling / IDE state
+.claude/
+.cursor/
+.trellis/
+
+# backups
+*.bak
