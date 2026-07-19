@@ -51,4 +51,3 @@ macOS 菜单栏小软件:读取系统正在播放的歌,自动投射到飞书"�
 - 本项目通过飞书 web 接口与 Apple 私有 framework 实现功能,**可能违反相关平台的服务条款或开发者协议**。使用本软件产生的任何风险与后果由使用者自行承担,作者不承担任何责任。
 - 本项目仅供个人学习与研究使用。如相关平台认为本项目侵犯其权益,请联系作者移除。
 - 软件按"现状"提供,不提供任何明示或暗示的担保,不保证可用性,亦不保证随系统/平台更新持续可用。
-- MediaRemote 适配器代码(bin/ 下的三个文件)源自 [ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter),遵循 BSD-3-Clause 授权,详见 `LICENSE-third-party.txt`;其余代码遵循 MIT 授权,详见 `LICENSE`。
