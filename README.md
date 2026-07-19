@@ -4,7 +4,7 @@ macOS 菜单栏小软件:读取系统正在播放的歌,自动投射到飞书"�
 
 ## 功能
 
-- **取歌**:系统级 Now Playing(MediaRemote 经 Apple 签名的 `/usr/bin/perl` 加载 dylib 调用),覆盖**所有**播放器(Spotify / Apple Music / QQ音乐 / 网易云 / 酷狗 / 汽水音乐 / Chrome …),无需对每个 app 单独适配。
+- **取歌**:系统级 Now Playing(MediaRemote 经 Apple 签名的 `/usr/bin/perl` 加载 dylib 调用 参考自： <https://github.com/ungive/mediaremote-adapter>),覆盖**所有**播放器(Spotify / Apple Music / QQ音乐 / 网易云 / 酷狗 / 汽水音乐 / Chrome …),无需对每个 app 单独适配。
 - **飞书签名**:登录网页版飞书抓 cookie,直接调飞书接口改签名。
 - **前后缀**:可自定义签名首尾(如前缀 `🎧`、后缀 `(now)`)。
 - **暂停恢复**:暂停时自动切到"暂停签名"(可留空=清空),播放时切回歌名。
@@ -44,3 +44,11 @@ macOS 菜单栏小软件:读取系统正在播放的歌,自动投射到飞书"�
 
 - 飞书签名写入走 web `passport/users/details` 接口(官方无签名写 API)。如飞书改版导致失效,可能需调整。
 - macOS 15.4+/26 上,Apple 限制了普通 app 直接加载 MediaRemote.framework;本 App 借助系统自带的 Apple 签名 `/usr/bin/perl` 加载 dylib 绕过,实测在 macOS 26.3 可用。
+
+## 免责声明
+
+- **本项目为非官方、个人作品**,与字节跳动、飞书(Lark)、Apple 及任何播放器厂商无关,也未获其授权或认可。
+- 本项目通过飞书 web 接口与 Apple 私有 framework 实现功能,**可能违反相关平台的服务条款或开发者协议**。使用本软件产生的任何风险与后果由使用者自行承担,作者不承担任何责任。
+- 本项目仅供个人学习与研究使用。如相关平台认为本项目侵犯其权益,请联系作者移除。
+- 软件按"现状"提供,不提供任何明示或暗示的担保,不保证可用性,亦不保证随系统/平台更新持续可用。
+- MediaRemote 适配器代码(bin/ 下的三个文件)源自 [ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter),遵循 BSD-3-Clause 授权,详见 `LICENSE-third-party.txt`;其余代码遵循 MIT 授权,详见 `LICENSE`。

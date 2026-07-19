@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Derived from: https://github.com/ungive/mediaremote-adapter
+// Copyright (c) 2025 Jonas van den Berg and contributors
+// See LICENSE-third-party.txt for the full BSD-3-Clause license.
+//
 // mr_adapter.m — MediaRemote adapter loaded by /usr/bin/perl (Apple-signed).
 // perl's com.apple.* signing lets MediaRemote's caller-check (macOS 15.4+/26) pass.
 // Exports adapter_get_env (invoked via DynaLoader::dl_install_xsub in loader.pl).
