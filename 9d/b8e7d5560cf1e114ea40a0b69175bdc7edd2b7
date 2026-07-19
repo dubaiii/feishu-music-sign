@@ -1,0 +1,35 @@
+bin/mediaremote_dylib.m
+  s_c96c684b6a17ee::t_d0ddc75db98e7a 1-5
+bin/loader.pl
+  s_c96c684b6a17ee::t_a71c7fa69c26c4 1-4
+LICENSE
+  s_c96c684b6a17ee::t_0bbc49cbe1b022 1-24
+LICENSE-third-party.txt
+  s_c96c684b6a17ee::t_23fcf751a1fe91 1-33
+README.md
+  s_c96c684b6a17ee::t_4fecd57d8f299c 47-50,52-54
+  h_81ddeab405047e 7,51
+bin/mr_adapter.m
+  s_c96c684b6a17ee::t_3e586b97ed7548 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "9db8e7d5560cf1e114ea40a0b69175bdc7edd2b7",
+  "prompts": {},
+  "humans": {
+    "h_81ddeab405047e": {
+      "author": "cf.fu <cf.fu@trip.com>"
+    }
+  },
+  "sessions": {
+    "s_c96c684b6a17ee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "32eecf27-3570-4044-be85-8346c2aced9d",
+        "model": "glm-5.2"
+      },
+      "human_author": "cf.fu <morx.va@gmail.com>"
+    }
+  }
+}
