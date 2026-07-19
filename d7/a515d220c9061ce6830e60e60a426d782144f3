@@ -1,0 +1,31 @@
+README.md
+  s_123a8318b14002::t_1ba8d2e20ed457 3-9
+  s_123a8318b14002::t_02449cabba5258 1-2,10,12,14,16-35,38-39,41,46,50,53,55,64,66,72,77,83-87
+bin/mediaremote_dylib.m
+  s_123a8318b14002::t_9cafcfb9a4a9fc 4
+bin/loader.pl
+  s_123a8318b14002::t_9cafcfb9a4a9fc 4
+bin/mr_adapter.m
+  s_123a8318b14002::t_9cafcfb9a4a9fc 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "d7a515d220c9061ce6830e60e60a426d782144f3",
+  "prompts": {},
+  "humans": {
+    "h_c8ee82060497d0": {
+      "author": "cf.fu <morx.va@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_123a8318b14002": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8f58855d-fe9f-457e-9c55-7ebdf7b33155",
+        "model": "glm-5.2"
+      },
+      "human_author": "cf.fu <morx.va@gmail.com>"
+    }
+  }
+}
