@@ -1,0 +1,24 @@
+LICENSE
+  s_123a8318b14002::t_24609a8946f223 15,20-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "bf991a9960ab4f80b8f51d096f29ee4317903205",
+  "prompts": {},
+  "humans": {
+    "h_c8ee82060497d0": {
+      "author": "cf.fu <morx.va@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_123a8318b14002": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8f58855d-fe9f-457e-9c55-7ebdf7b33155",
+        "model": "glm-5.2"
+      },
+      "human_author": "cf.fu <morx.va@gmail.com>"
+    }
+  }
+}
