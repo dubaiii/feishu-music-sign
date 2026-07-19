@@ -1,29 +1,58 @@
-# MusicSign — 把当前播放的歌投到飞书签名
+<div align="center">
+  <img src="docs/assets/icon.png" width="128" alt="MusicSign" />
+  <h1>MusicSign</h1>
+  <p><strong>让飞书签名显示正在听的歌。</strong></p>
+  <p>
+    <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" /></a>
+    <img src="https://img.shields.io/badge/platform-macOS%2014%2B-black.svg" alt="Platform" />
+  </p>
+  <p><sub>macOS 菜单栏小软件 · 覆盖所有播放器 · 无需逐个适配</sub></p>
+</div>
 
-macOS 菜单栏小软件:读取系统正在播放的歌,自动投射到飞书"个性签名"。
+---
 
-## 功能
+## 🎵 这是什么
 
-- **取歌**:系统级 Now Playing(MediaRemote 经 Apple 签名的 `/usr/bin/perl` 加载 dylib 调用 参考自： <https://github.com/ungive/mediaremote-adapter>),覆盖**所有**播放器(Spotify / Apple Music / QQ音乐 / 网易云 / 酷狗 / 汽水音乐 / Chrome …),无需对每个 app 单独适配。
+macOS 菜单栏小软件:读取系统正在播放的歌,自动投射到飞书"个性签名"。换歌自动更新,暂停自动切回暂停签名。
+
+> 支持 Spotify / Apple Music / QQ音乐 / 网易云 / 酷狗 / 汽水音乐 / Chrome …… 只要挂在系统 Now Playing 上的播放器都行。
+
+## 📸 截图
+
+<table>
+  <tr>
+    <td align="center"><b>播放中</b></td>
+    <td align="center"><b>暂停</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/assets/playing.png" width="360" alt="播放中" /></td>
+    <td align="center"><img src="docs/assets/paused.png" width="360" alt="暂停" /></td>
+  </tr>
+</table>
+
+## ✨ 功能
+
+- **取歌**:系统级 Now Playing(MediaRemote 经 Apple 签名的 `/usr/bin/perl` 加载 dylib 调用,参考自 [ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter)),覆盖**所有**播放器,无需对每个 app 单独适配。
 - **飞书签名**:登录网页版飞书抓 cookie,直接调飞书接口改签名。
 - **前后缀**:可自定义签名首尾(如前缀 `🎧`、后缀 `(now)`)。
-- **暂停恢复**:暂停时自动切到"暂停签名"(可留空=清空),播放时切回歌名。
+- **暂停恢复**:暂停时自动切到"暂停签名"(可留空 = 清空),播放时切回歌名。
+- **开机自启**:首次启动自动申请加入登录项(`SMAppService`)。
 
-## 系统要求
+## 📋 系统要求
 
 - macOS 14.0(Sonoma)及以上
 - Universal:Apple Silicon(arm64)与 Intel(x86_64)均可
 
-## 安装(下载 Release 版)
+## 📦 安装(下载 Release 版)
 
 1. 从 [Releases](https://github.com/dubaiii/feishu-music-sign/releases) 下载 `MusicSign-x.x.x.zip`,解压得到 `MusicSign.app`。
 2. 拖到 `/Applications`(或任意位置)。
-3. 本 app 未签名未公证, 提示安装不了 → 系统设置 → 隐私与安全性, 往下滑动到「安全性」板块，会看到一行提示：已阻止使用 “MusicSign”, 点击右侧 仍要打开，输入电脑开机密码确认，就能正常启动软件，后续不会再拦截。
+3. 本 app 未签名未公证, 提示安装不了 → 系统设置 → 隐私与安全性, 往下滑动到「安全性」板块,会看到一行提示:已阻止使用 "MusicSign", 点击右侧 仍要打开,输入电脑开机密码确认,就能正常启动软件,后续不会再拦截。
 4. 双击启动 → 菜单栏出现 ♪ 图标。
 
-> **首次打开 App 会自动申请加入「开机自启动」**(通过系统 `SMAppService` 登录项)。可在 **系统设置 → 通用 → 登录项** 里查看或关闭 MusicSign。
+> **首次打开 App 会自动申请加入「开机自启动」**。可在 **系统设置 → 通用 → 登录项** 里查看或关闭 MusicSign。
 
-## 使用
+## 🚀 使用
 
 1. 点菜单栏 ♪ → **登录飞书** → 弹窗里登录网页版飞书 → 关窗自动存 cookie。
 2. 勾 **同步到飞书签名**。
@@ -32,22 +61,27 @@ macOS 菜单栏小软件:读取系统正在播放的歌,自动投射到飞书"�
 
 > Cookie 过期(飞书返回 4xx)时 App 会自动清缓存并提示重新登录。
 
-## 文件
+## 🔧 工作原理 / 文件
 
-- `app/MusicSignApp.swift` — App 主体(NowPlaying / Feishu 登录+cookie 直调 / 菜单栏 UI)。
+- `app/MusicSignApp.swift` — App 主体(NowPlaying / Feishu 登录 + cookie 直调 / 菜单栏 UI)。
 - `app/build.sh`、`app/release.sh` — 本机构建 / universal 打包。
 - `bin/mr_adapter.m` → `libmr_adapter.dylib` — MediaRemote 适配器(经 perl 加载)。
 - `bin/loader.pl` — DynaLoader 加载 dylib 的胶水。
 - `~/Library/Application Support/MusicSign/feishu_cookies.json` — 飞书登录态(运行时)。
 
-## 说明与限制
+## ⚠️ 说明与限制
 
 - 飞书签名写入走 web `passport/users/details` 接口(官方无签名写 API)。如飞书改版导致失效,可能需调整。
 - macOS 15.4+/26 上,Apple 限制了普通 app 直接加载 MediaRemote.framework;本 App 借助系统自带的 Apple 签名 `/usr/bin/perl` 加载 dylib 绕过,实测在 macOS 26.3 可用。
 
-## 免责声明
+## 🧾 免责声明
 
 - **本项目为非官方、个人作品**,与字节跳动、飞书(Lark)、Apple 及任何播放器厂商无关,也未获其授权或认可。
 - 本项目通过飞书 web 接口与 Apple 私有 framework 实现功能,**可能违反相关平台的服务条款或开发者协议**。使用本软件产生的任何风险与后果由使用者自行承担,作者不承担任何责任。
 - 本项目仅供个人学习与研究使用。如相关平台认为本项目侵犯其权益,请联系作者移除。
 - 软件按"现状"提供,不提供任何明示或暗示的担保,不保证可用性,亦不保证随系统/平台更新持续可用。
+
+## 📄 License
+
+- 本项目主体代码遵循 **MIT** 授权,详见 [LICENSE](./LICENSE)。
+- `bin/` 下的 MediaRemote 适配器代码(`mediaremote_dylib.m`、`mr_adapter.m`、`loader.pl`)源自 [ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter),遵循 **BSD-3-Clause** 授权,各文件头部 SPDX 标识保留。

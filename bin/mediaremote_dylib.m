@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // Derived from: https://github.com/ungive/mediaremote-adapter
 // Copyright (c) 2025 Jonas van den Berg and contributors
-// See LICENSE-third-party.txt for the full BSD-3-Clause license.
+// Full BSD-3-Clause text: https://github.com/ungive/mediaremote-adapter (upstream).
 //
 // mediaremote_dylib.m
 // A dylib loaded by /usr/bin/perl. perl is Apple-signed (com.apple.* system app),

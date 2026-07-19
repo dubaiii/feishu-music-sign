@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Derived from: https://github.com/ungive/mediaremote-adapter
 # Copyright (c) 2025 Jonas van den Berg and contributors
-# See LICENSE-third-party.txt for the full BSD-3-Clause license.
+# Full BSD-3-Clause text: https://github.com/ungive/mediaremote-adapter (upstream).
 use strict; use warnings; use DynaLoader;
 my $dylib_path = shift @ARGV or exit 1;
 my $command = shift @ARGV // "get";
